@@ -50,7 +50,6 @@ Vista 3D interactiva de los modelos con malla sólida, wireframe de aristas y nu
 
 ![Reporte de conversiones Python](./media/evidence/python2.gif)
 
-Análisis estadístico de geometría y tabla comparativa de modelos originales y convertidos.
 
 ### Three.js — Visor interactivo
 
