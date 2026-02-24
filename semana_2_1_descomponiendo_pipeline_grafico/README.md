@@ -39,26 +39,7 @@ Durante la práctica se realizaron ajustes de escala, rotación y organización 
 
 ## Diagrama del pipeline (Mermaid)
 
-```mermaid
-flowchart TB
-    A["CPU / Aplicación"]
-    B["Input Assembler"]
-    C["Vertex Shader (programable)"]
-    D["Tessellation (opcional)"]
-    E["Geometry Shader (programable, opcional)"]
-    F["Rasterización"]
-
-    subgraph TEX ["Texturizado y Mapeo UV"]
-        G["Interpolación de coordenadas UV"]
-        H["Fragment Shader (programable)<br/>Sampling de texturas con UVs"]
-    end
-
-    I["Output Merger<br/>Depth test · Stencil · Blending"]
-    J["Framebuffer"]
-    K["Pantalla"]
-
-    A --> B --> C --> D --> E --> F --> G --> H --> I --> J --> K
-```
+![Pipeline](./media/Pipeline_grafico_uv_mapping.png)
 
 ---
 
