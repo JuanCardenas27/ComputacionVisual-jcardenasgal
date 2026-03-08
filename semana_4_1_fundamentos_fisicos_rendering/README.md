@@ -60,7 +60,65 @@ presentacion/
 
 ### Unity
 
-AQUI VA EL UNITY 
+Se desarrollaron dos muestras en Unity para contrastar una implementación manual del modelo físico frente al pipeline PBR nativo:
+
+1. **Cook-Torrance implementado en shader (URP)**
+2. **Muestra equivalente usando el shader/material estándar de Unity**
+
+#### 1) Implementación propia: Cook-Torrance en código
+
+En `unity/CookTorrance_Custom_BRDF/` se construyó un shader URP (`Assets/CookTorranceURP.shader`) que aproxima la BRDF de Cook-Torrance con:
+
+- **NDF GGX (Trowbridge-Reitz)** para la distribución de microfacetas.
+- **Fresnel de Schlick** para la reflectancia angular.
+- **Término geométrico Smith-Schlick-GGX** para shadowing/masking.
+
+La base teórica usada fue:
+
+$$f_r = \frac{D \cdot F \cdot G}{4\,(\mathbf{n} \cdot \mathbf{l})\,(\mathbf{n} \cdot \mathbf{v})}$$
+
+Extracto del shader (composición BRDF):
+
+```hlsl
+float NDF = NDF_GGX(NdotH, _Roughness);
+float3 F  = FresnelSchlick(HdotV, F0);
+float G   = GeometrySmith(NdotV, NdotL, _Roughness);
+
+float3 numerator = NDF * G * F;
+float denominator = 4.0 * NdotV * NdotL + 0.0001;
+float3 specular = numerator / denominator;
+
+float3 kS = F;
+float3 kD = 1.0 - kS;
+kD *= 1.0 - _Metallic;
+
+float3 color = (kD * _Color.rgb / PI + specular) * mainLight.color * NdotL;
+```
+
+Evidencia visual de la implementación propia:
+
+![Cook-Torrance - variación de rugosidad](media/unity_cook-torrance_naive_roughness.gif)
+`unity_cook-torrance_naive_roughness.gif`: muestra cómo cambia el highlight especular al variar `Roughness`. Con menor rugosidad, el reflejo es más concentrado y brillante; con mayor rugosidad, el lóbulo especular se dispersa y se percibe más mate.
+
+![Cook-Torrance - variación de metalicidad](media/unity_cook-torrance_naive_metallic.gif)
+`unity_cook-torrance_naive_metallic.gif`: evidencia la transición dieléctrico-metal al variar `Metallic`. A mayor metalicidad, disminuye el componente difuso (`kD`) y la respuesta especular domina el color del material.
+
+![Cook-Torrance - posición de la luz](media/unity_cook-torrance_naive_light_position.gif)
+`unity_cook-torrance_naive_light_position.gif`: ilustra el desplazamiento de la reflexión especular cuando cambia la posición de la fuente de luz, validando la dependencia angular de la BRDF respecto a `N`, `L`, `V` y `H`.
+
+#### 2) Implementación con luces/materiales estándar de Unity
+
+En `unity/Unity_Standard_PBR/` se realizó la misma demostración visual usando la implementación PBR que Unity trae por defecto (sin reescribir manualmente la BRDF), para comparar comportamiento y resultado final.
+
+Evidencia visual con Unity Standard PBR:
+
+![Setup de escena con Unity Standard PBR](media/unity_standard_pbr_setup.png)
+`unity_standard_pbr_setup.png`: captura de la configuración de la escena y material usando el flujo PBR nativo de Unity (sin shader manual), utilizada como línea base de comparación.
+
+![Exhibición de iluminación con Unity Standard PBR](media/unity_standard_pbr_exhibition.gif)
+`unity_standard_pbr_exhibition.gif`: demostración dinámica del comportamiento de la iluminación y los reflejos en la versión estándar de Unity, para contrastar visualmente contra la implementación propia de Cook-Torrance.
+
+Esta comparación permitió validar que la aproximación manual de Cook-Torrance reproduce el comportamiento esperado frente al flujo PBR estándar del motor.
 
 ---
 
@@ -111,9 +169,12 @@ Como mejora, se podría explorar la BRDF de Disney (Principled BRDF), que extien
 
 ```
 semana_4_1_fundamentos_fisicos_rendering/
+├── media/                                              # Evidencias visuales (gifs e imágenes de Unity)
 ├── presentacion/
 │   └── 8_teoria_de_microfacetas_y_cook-torrance.pdf   # Diapositivas de la exposición
 ├── unity/                                              # Proyecto Unity (ver sección Unity)
+│   ├── CookTorrance_Custom_BRDF/                       # Implementación manual del modelo Cook-Torrance
+│   └── Unity_Standard_PBR/                             # Comparativa con el flujo PBR estándar de Unity
 └── README.md                                           # Documentación de la actividad
 ```
 
